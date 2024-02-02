@@ -1,7 +1,9 @@
 {
   "name": "backend",
   "dependencies": {
+    "@dotenvx/dotenvx": "^0.14.1",
     "@trpc/server": "^10.0.0",
+    "axios": "^1.6.7",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "zod": "^3.19.1"
@@ -16,7 +18,8 @@
     "typescript": "^4.9.3"
   },
   "scripts": {
-    "dev": "nodemon",
-    "dev:script": "node -r tsconfig-paths/register -r ts-node/register"
+    "typecheck": "tsc --noEmit",
+    "dev:api": "nodemon --config nodemon.api.json",
+    "dev:script": "dotenvx run --env-file=.env --env-file=secrets.env -- ts-node -r tsconfig-paths/register --project tsconfig.script.json"
   }
 }
