@@ -1,7 +1,7 @@
-import { MusicDatabaseApi } from "@/core/ports/MusicDatabaseApi.port"
+import { MusicDatabase } from "@/core/ports/MusicDatabase.port"
 
 interface RetrieveArtistProducedTracksDependencies {
-  musicDatabase: MusicDatabaseApi
+  musicDatabase: MusicDatabase
 }
 
 interface RetrieveArtistProducedTracksArgs {

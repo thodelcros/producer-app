@@ -9,6 +9,7 @@ export type GeniusSong = {
   id: number
   title: string
   artist_names: string
+  full_title: string
   release_date_components: {
     year: 2017
     month: 10

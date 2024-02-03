@@ -5,7 +5,7 @@ import {
   PERMISSION_SCOPES,
   REDIRECT_URI,
   SpotifyAuthAdapter,
-} from "@/adapters/SpotifyAuthAdapter/SpotifyAdapter"
+} from "@/adapters/SpotifyAuthAdapter/SpotifyAuthAdapter"
 
 const spotifyAuthRouter = Router()
 
