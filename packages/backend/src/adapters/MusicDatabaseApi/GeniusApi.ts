@@ -3,7 +3,7 @@ import axios, { AxiosInstance, AxiosRequestConfig } from "axios"
 import { GeniusApiError } from "./GeniusErrors"
 import { GeniusApiResponse } from "./GeniusTypes"
 
-const BASE_URL = "https://genius.com/api"
+const BASE_URL = "https://genius.com"
 
 export class GeniusApi {
   client: AxiosInstance

@@ -1,5 +1,5 @@
 import { GeniusAdapter } from "@/adapters/MusicDatabaseApi/GeniusAdapter"
-import { retrieveArtistProductions } from "@/core/usecases/retrieve-artist-productions/retrieveArtistProductions.usecase"
+import { autocompleteArtists } from "@/core/usecases/autocomplete-artists/autocompleteArtists.usecase"
 
 import { checkEnv } from "../env"
 
@@ -7,13 +7,13 @@ import { checkEnv } from "../env"
   checkEnv()
 
   try {
-    const retrieveArtistProductionsFromGenius = retrieveArtistProductions({
-      trackRepository: new GeniusAdapter(),
+    const autocompleteArtistOnGenius = autocompleteArtists({
+      musicDatabase: new GeniusAdapter(),
     })
 
-    const tracks = await retrieveArtistProductionsFromGenius({ artistId: "1" })
+    const artists = await autocompleteArtistOnGenius({ query: "ponko" })
 
-    console.log({ tracks })
+    console.log({ artists })
   } catch (error) {
     console.error("[ERROR] : ", error)
 

@@ -5,11 +5,11 @@ interface RetrieveArtistProducedTracksDependencies {
 }
 
 interface RetrieveArtistProducedTracksArgs {
-  artistId: string
+  query: string
 }
 
-export const retrieveArtistProducedTracks =
+export const autocompleteArtists =
   ({ musicDatabase }: RetrieveArtistProducedTracksDependencies) =>
-  ({ artistId }: RetrieveArtistProducedTracksArgs) => {
-    return musicDatabase.getTracksByArtistId(artistId)
+  ({ query }: RetrieveArtistProducedTracksArgs) => {
+    return musicDatabase.autocompleteArtists(query)
   }
