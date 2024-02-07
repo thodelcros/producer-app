@@ -1,6 +1,6 @@
 import { Artist } from "../domain/Artist"
 
 export interface MusicDatabase {
-  getTrackNamesByArtistId(id: string): Promise<string[]> // track names to map them into streaming platform
+  getTrackNamesByArtistId(id: string): Promise<{ trackName: string; artistName: string }[]>
   autocompleteArtists(query: string): Promise<Artist[]>
 }

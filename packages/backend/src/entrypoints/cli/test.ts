@@ -16,8 +16,8 @@ import { checkEnv } from "../env"
           Promise.resolve([
             {
               id: "1",
-              userId: "1", // User
-              streamingPlatformPlaylistId: "5xJbB3Kh6IpcrV62z8HcPd",
+              userId: "1",
+              streamingPlatformPlaylistId: "3CrkDrjkEFrfM4Anyv0SWF",
               musicDatabaseArtistId: "558028", // JayJay
               active: true,
             },

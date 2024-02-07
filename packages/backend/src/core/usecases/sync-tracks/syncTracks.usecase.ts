@@ -29,10 +29,10 @@ export class SyncTracks {
       synchronization.musicDatabaseArtistId,
     )
 
-    console.log({ tracks })
-
     const streamingPlatformTrackIds = await Promise.all(
-      tracks.map((trackName) => this.getTrackStreamingPlatformId(trackName)),
+      tracks.map(({ trackName, artistName }) =>
+        this.getTrackStreamingPlatformId(trackName, artistName),
+      ),
     )
 
     const foundTracks = streamingPlatformTrackIds.filter(Boolean) as string[]
@@ -43,10 +43,13 @@ export class SyncTracks {
     )
   }
 
-  private async getTrackStreamingPlatformId(trackName: string) {
+  private async getTrackStreamingPlatformId(trackName: string, artistName: string) {
     const { streamingPlatform } = this.dependencies
 
-    const streamingPlatformTrack = await streamingPlatform.findTrackByName(trackName)
+    const streamingPlatformTrack = await streamingPlatform.findTrackByNameAndArtist(
+      trackName,
+      artistName,
+    )
 
     return streamingPlatformTrack
   }

@@ -16,7 +16,10 @@ export class GeniusAdapter extends GeniusApi implements MusicDatabase {
       params: { page: 1, sort: "release_date" },
     })
 
-    return response.data.response.songs.map((song) => song.full_title)
+    return response.data.response.songs.map((song) => ({
+      trackName: song.title,
+      artistName: song.primary_artist.name,
+    }))
   }
 
   async autocompleteArtists(query: string) {

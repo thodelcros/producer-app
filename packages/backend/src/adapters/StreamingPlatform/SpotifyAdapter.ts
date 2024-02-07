@@ -4,10 +4,16 @@ import { SpotifyApi } from "./SpotifyApi"
 import { SpotifySearchTracksResponse } from "./SpotifyTypes"
 
 export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
-  async findTrackByName(name: string) {
+  async findTrackByNameAndArtist(trackName: string, artistName: string) {
     const response = await this.callApi<SpotifySearchTracksResponse>({
       url: "/search",
-      params: { q: name, type: "track" },
+      params: {
+        q: `${trackName} artist:${artistName}`,
+        type: "track",
+        limit: 1,
+        offset: 0,
+        market: "FR",
+      },
     })
 
     if (!response.data.tracks.items[0]) {

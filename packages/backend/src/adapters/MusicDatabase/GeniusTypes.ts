@@ -16,6 +16,7 @@ export type GeniusSong = {
     day: 27
   } | null
   song_art_image_thumbnail_url: string
+  primary_artist: GeniusArtist
 }
 
 export type GeniusGetArtistSongsResponseBody = {
