@@ -1,5 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios"
 
+import { ArrayKey } from "@/core/utils/utility.types"
+
 import { GeniusApiError } from "./GeniusErrors"
 import { GeniusApiResponse } from "./GeniusTypes"
 
@@ -14,7 +16,7 @@ export class GeniusApi {
     })
   }
 
-  async callApi<TResponse>({ url, params }: AxiosRequestConfig) {
+  async callApi<TResponse extends Record<string, unknown>>({ url, params }: AxiosRequestConfig) {
     try {
       const response = await this.client.request<GeniusApiResponse<TResponse>>({ url, params })
 
@@ -22,6 +24,50 @@ export class GeniusApi {
     } catch (error) {
       this.handleError(error)
     }
+  }
+
+  getPaginatedFetcher<TResponse extends Record<string, unknown>>({
+    url,
+    params,
+  }: AxiosRequestConfig) {
+    const fetcher = async <TKey extends ArrayKey<TResponse>>(
+      key: TKey,
+    ): Promise<TResponse[TKey]> => {
+      let page = 1
+      let hasMore = true
+
+      const items = []
+
+      console.log("-- Pagination retrieval started --")
+      console.log(`Retrieving ${url} page ${page}`)
+
+      while (hasMore) {
+        console.log(`Retrieving page ${page}...`)
+        const response = await this.callApi<TResponse>({ url, params: { ...params, page } })
+
+        const batchItems = response.data.response[key]
+
+        if (!Array.isArray(batchItems)) {
+          throw Error(`Provided key ${String(key)} has no array value`)
+        }
+
+        items.push(...batchItems)
+
+        console.log("Total items : ", items.length)
+
+        if (!response.data.response.next_page) {
+          hasMore = false
+        } else {
+          page++
+        }
+      }
+
+      console.log("-- Pagination retrieval ended ---")
+
+      return items as TResponse[TKey]
+    }
+
+    return fetcher.bind(this)
   }
 
   private handleError(error: unknown): never {

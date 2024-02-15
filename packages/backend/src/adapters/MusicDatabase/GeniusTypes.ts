@@ -2,7 +2,7 @@ export type GeniusApiResponse<TResponse> = {
   meta: {
     status: number
   }
-  response: TResponse
+  response: TResponse & { next_page: number | null }
 }
 
 export type GeniusSong = {
@@ -17,10 +17,13 @@ export type GeniusSong = {
   } | null
   song_art_image_thumbnail_url: string
   primary_artist: GeniusArtist
+  featured_artists: GeniusArtist[]
 }
 
 export type GeniusGetArtistSongsResponseBody = {
   songs: GeniusSong[]
+  artists: GeniusArtist[]
+  toto: 42
 }
 
 export type GeniusArtist = {

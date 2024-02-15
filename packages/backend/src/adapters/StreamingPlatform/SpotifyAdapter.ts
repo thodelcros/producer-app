@@ -1,6 +1,7 @@
 import { StreamingPlatform } from "@/core/ports/StreamingPlatform.port"
+import { chunkArray } from "@/core/utils/utility.functions"
 
-import { SpotifyApi } from "./SpotifyApi"
+import { BATCH_ADD_TRACKS_TO_PLAYLIST_LIMIT, SpotifyApi } from "./SpotifyApi"
 import { SpotifySearchTracksResponse } from "./SpotifyTypes"
 
 export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
@@ -24,12 +25,16 @@ export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
   }
 
   async addTracksToPlaylist(playlistId: string, trackIds: string[]): Promise<void> {
-    await this.callApi({
-      url: `/playlists/${playlistId}/tracks`,
-      method: "post",
-      data: {
-        uris: trackIds,
-      },
-    })
+    const trackIdsChunks = chunkArray(trackIds, BATCH_ADD_TRACKS_TO_PLAYLIST_LIMIT)
+
+    for (const trackIdsChunk of trackIdsChunks) {
+      await this.callApi({
+        url: `/playlists/${playlistId}/tracks`,
+        method: "post",
+        data: {
+          uris: trackIdsChunk,
+        },
+      })
+    }
   }
 }

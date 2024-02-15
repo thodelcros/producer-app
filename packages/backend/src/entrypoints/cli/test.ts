@@ -17,8 +17,8 @@ import { checkEnv } from "../env"
             {
               id: "1",
               userId: "1",
-              streamingPlatformPlaylistId: "3CrkDrjkEFrfM4Anyv0SWF",
-              musicDatabaseArtistId: "558028", // JayJay
+              streamingPlatformPlaylistId: "0mE7Btty7tKqKyUx5F47W9",
+              musicDatabaseArtistId: "25823", // Jean Jass
               active: true,
             },
           ]),

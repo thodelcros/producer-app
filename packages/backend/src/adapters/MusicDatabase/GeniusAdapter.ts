@@ -10,13 +10,23 @@ import {
 
 export class GeniusAdapter extends GeniusApi implements MusicDatabase {
   async getTrackNamesByArtistId(id: string) {
-    const response = await this.callApi<GeniusGetArtistSongsResponseBody>({
+    const paginatedSongsFetcher = this.getPaginatedFetcher<GeniusGetArtistSongsResponseBody>({
       url: `/api/artists/${id}/songs`,
-      // TODO : handle pagination
-      params: { page: 1, sort: "release_date" },
+      params: { sort: "release_date" },
     })
 
-    return response.data.response.songs.map((song) => ({
+    const songs = await paginatedSongsFetcher("songs")
+
+    const producedSongs = songs.filter((song) => {
+      const isPrimaryArtist = song.primary_artist.id.toString() === id
+      const isFeaturedArtist = song.featured_artists.some(
+        ({ id: featuredArtistId }) => featuredArtistId.toString() === id,
+      )
+
+      return !isPrimaryArtist && !isFeaturedArtist // useful filtering for artists that are producer AND singer
+    })
+
+    return producedSongs.map((song) => ({
       trackName: song.title,
       artistName: song.primary_artist.name,
     }))

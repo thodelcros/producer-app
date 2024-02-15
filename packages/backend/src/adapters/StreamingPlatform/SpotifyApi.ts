@@ -3,6 +3,7 @@ import axios, { AxiosInstance, AxiosRequestConfig } from "axios"
 import { SpotifyError } from "./SpotifyErrors"
 
 const BASE_URL = "https://api.spotify.com/v1"
+export const BATCH_ADD_TRACKS_TO_PLAYLIST_LIMIT = 100
 
 export class SpotifyApi {
   client: AxiosInstance

@@ -29,11 +29,16 @@ export class SyncTracks {
       synchronization.musicDatabaseArtistId,
     )
 
-    const streamingPlatformTrackIds = await Promise.all(
-      tracks.map(({ trackName, artistName }) =>
-        this.getTrackStreamingPlatformId(trackName, artistName),
-      ),
-    )
+    console.log({ producedTracks: tracks.length })
+
+    const streamingPlatformTrackIds: (string | null)[] = []
+
+    for (const { trackName, artistName } of tracks) {
+      console.log("Fetching track on spotify : ", { trackName, artistName })
+      const trackId = await this.getTrackStreamingPlatformId(trackName, artistName)
+
+      streamingPlatformTrackIds.push(trackId)
+    }
 
     const foundTracks = streamingPlatformTrackIds.filter(Boolean) as string[]
 
