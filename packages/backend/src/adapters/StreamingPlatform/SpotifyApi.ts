@@ -11,15 +11,12 @@ export class SpotifyApi {
   constructor() {
     this.client = axios.create({
       baseURL: BASE_URL,
-      headers: {
-        Authorization: `Bearer ${process.env.SPOTIFY_API_ACCESS_TOKEN}`,
-      },
     })
   }
 
-  async callApi<TResponse>({ url, params, method, data }: AxiosRequestConfig) {
+  async callApi<TResponse>({ url, params, method, data, headers }: AxiosRequestConfig) {
     try {
-      const response = await this.client.request<TResponse>({ url, params, method, data })
+      const response = await this.client.request<TResponse>({ url, params, method, data, headers })
 
       return response
     } catch (error) {

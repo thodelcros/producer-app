@@ -1,0 +1,19 @@
+version: '3.8'
+
+networks:
+  backend:
+
+services:
+  database:
+    image: postgres
+    networks: [backend]
+    restart: always
+    ports: [5432:5432]
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: user
+      POSTGRES_DB: backend
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+
+

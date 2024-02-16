@@ -6,6 +6,7 @@ const BASE_URL = "https://accounts.spotify.com/api"
 
 export const REDIRECT_URI = `${process.env.SPOTIFY_AUTH_CALLBACK_BASE_URL}/spotify-auth/callback`
 export const PERMISSION_SCOPES = [
+  "user-read-email",
   "playlist-read-private",
   "playlist-read-collaborative",
   "playlist-modify-private",

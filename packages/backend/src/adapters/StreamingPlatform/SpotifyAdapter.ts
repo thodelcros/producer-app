@@ -2,10 +2,10 @@ import { StreamingPlatform } from "@/core/ports/StreamingPlatform.port"
 import { chunkArray } from "@/core/utils/utility.functions"
 
 import { BATCH_ADD_TRACKS_TO_PLAYLIST_LIMIT, SpotifyApi } from "./SpotifyApi"
-import { SpotifySearchTracksResponse } from "./SpotifyTypes"
+import { SpotifySearchTracksResponse, SpotifyUserProfileDetailsResponse } from "./SpotifyTypes"
 
 export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
-  async findTrackByNameAndArtist(trackName: string, artistName: string) {
+  async findTrackByNameAndArtist(trackName: string, artistName: string, accessToken: string) {
     const response = await this.callApi<SpotifySearchTracksResponse>({
       url: "/search",
       params: {
@@ -14,6 +14,9 @@ export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
         limit: 1,
         offset: 0,
         market: "FR",
+      },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
       },
     })
 
@@ -24,7 +27,11 @@ export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
     return response.data.tracks.items[0].uri
   }
 
-  async addTracksToPlaylist(playlistId: string, trackIds: string[]): Promise<void> {
+  async addTracksToPlaylist(
+    playlistId: string,
+    trackIds: string[],
+    accessToken: string,
+  ): Promise<void> {
     const trackIdsChunks = chunkArray(trackIds, BATCH_ADD_TRACKS_TO_PLAYLIST_LIMIT)
 
     for (const trackIdsChunk of trackIdsChunks) {
@@ -34,7 +41,21 @@ export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
         data: {
           uris: trackIdsChunk,
         },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       })
     }
+  }
+
+  async getUserDetails(accessToken: string): Promise<{ email: string; id: string }> {
+    const response = await this.callApi<SpotifyUserProfileDetailsResponse>({
+      url: "/me",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+
+    return { email: response.data.email, id: response.data.id }
   }
 }

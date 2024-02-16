@@ -6,6 +6,10 @@ import {
   REDIRECT_URI,
   SpotifyAuthAdapter,
 } from "@/adapters/SpotifyAuthAdapter/SpotifyAuthAdapter"
+import { SpotifyAdapter } from "@/adapters/StreamingPlatform/SpotifyAdapter"
+import { DbUserRepository } from "@/adapters/UsersRepository/DbUserRepository"
+import { UuidGenerator } from "@/adapters/utils/UuidGenerator"
+import { registerUser } from "@/core/usecases/register-user/register-user.usecase"
 
 const spotifyAuthRouter = Router()
 
@@ -31,16 +35,20 @@ spotifyAuthRouter.get("/callback", async (request, response) => {
     return response.json({ ok: false, code, state, message: "Auth failed 🤕" })
   }
 
-  const spotifyAuthApi = new SpotifyAuthAdapter()
+  const registerSpotifyUserInDb = await registerUser({
+    authAdapter: new SpotifyAuthAdapter(),
+    streamingPlatform: new SpotifyAdapter(),
+    idGenerator: new UuidGenerator(),
+    userRepository: new DbUserRepository(),
+  })
 
   try {
-    const accessToken = await spotifyAuthApi.getAccessToken(code as string)
+    const result = await registerSpotifyUserInDb({ authCode: code as string })
 
     return response.json({
       ok: true,
       message: "Auth succeded 💪",
-      ...accessToken,
-      getOneMore: `${process.env.SPOTIFY_AUTH_CALLBACK_BASE_URL}/spotify-auth`,
+      result,
     })
   } catch (error) {
     console.log(error)

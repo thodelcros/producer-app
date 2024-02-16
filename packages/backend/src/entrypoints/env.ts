@@ -6,6 +6,7 @@ const envVars = z.object({
   SPOTIFY_AUTH_CALLBACK_BASE_URL: z.string(),
   // TODO : remove, for dev purpose only
   SPOTIFY_API_ACCESS_TOKEN: z.string(),
+  DATABASE_CONNECTION_STRING: z.string(),
 })
 
 export const checkEnv = () => {

@@ -1,41 +1,55 @@
-import { Synchronization } from "@/core/domain/Synchronization"
+import { Configuration } from "@/core/domain/Configuration"
+import { ConfigurationsRepository } from "@/core/ports/ConfigurationsRepository.port"
 import { MusicDatabase } from "@/core/ports/MusicDatabase.port"
 import { StreamingPlatform } from "@/core/ports/StreamingPlatform.port"
-import { SynchronizationRepository } from "@/core/ports/SynchronizationRepository.port"
+import { StreamingPlatformAuthAdapter } from "@/core/ports/StreamingPlatformAuthAdapter.port"
+import { UserRepository } from "@/core/ports/UserRepository.port"
 
 type SyncTracksDependencies = {
   musicDatabase: MusicDatabase
   streamingPlatform: StreamingPlatform
-  synchronizationRepository: SynchronizationRepository
+  streamingPlatformAuthAdapter: StreamingPlatformAuthAdapter
+  userRepository: UserRepository
+  configurationRepository: ConfigurationsRepository
 }
 
 export class SyncTracks {
   constructor(private dependencies: SyncTracksDependencies) {}
 
   async execute() {
-    const { synchronizationRepository } = this.dependencies
+    const { configurationRepository } = this.dependencies
 
-    const synchronizations = await synchronizationRepository.getAllSynchronizations()
+    const configurations = await configurationRepository.getAllConfigurations()
 
     await Promise.all(
-      synchronizations.map((synchronization) => this.processSynchronization(synchronization)),
+      configurations.map((configuration) => this.processConfiguration(configuration)),
     )
   }
 
-  private async processSynchronization(synchronization: Synchronization) {
-    const { musicDatabase, streamingPlatform } = this.dependencies
+  private async processConfiguration(configuration: Configuration) {
+    const { musicDatabase, streamingPlatform, userRepository, streamingPlatformAuthAdapter } =
+      this.dependencies
 
-    const tracks = await musicDatabase.getTrackNamesByArtistId(
-      synchronization.musicDatabaseArtistId,
-    )
+    const tracks = await musicDatabase.getTrackNamesByArtistId(configuration.musicDatabaseArtistId)
 
     console.log({ producedTracks: tracks.length })
+
+    const user = await userRepository.findById(configuration.userId)
+
+    if (!user) {
+      throw new Error("user not found")
+    }
+
+    const { accessToken } = await streamingPlatformAuthAdapter.refreshAccessToken(
+      user.streamingPlatformAuthRefreshToken,
+    )
 
     const streamingPlatformTrackIds: (string | null)[] = []
 
     for (const { trackName, artistName } of tracks) {
-      console.log("Fetching track on spotify : ", { trackName, artistName })
-      const trackId = await this.getTrackStreamingPlatformId(trackName, artistName)
+      const trackId = await this.getTrackStreamingPlatformId(trackName, artistName, accessToken)
+
+      console.log("Track fetched on spotify : ", { trackName, artistName, trackId })
 
       streamingPlatformTrackIds.push(trackId)
     }
@@ -43,17 +57,23 @@ export class SyncTracks {
     const foundTracks = streamingPlatformTrackIds.filter(Boolean) as string[]
 
     await streamingPlatform.addTracksToPlaylist(
-      synchronization.streamingPlatformPlaylistId,
+      configuration.streamingPlatformPlaylistId,
       foundTracks,
+      accessToken,
     )
   }
 
-  private async getTrackStreamingPlatformId(trackName: string, artistName: string) {
+  private async getTrackStreamingPlatformId(
+    trackName: string,
+    artistName: string,
+    accessToken: string,
+  ) {
     const { streamingPlatform } = this.dependencies
 
     const streamingPlatformTrack = await streamingPlatform.findTrackByNameAndArtist(
       trackName,
       artistName,
+      accessToken,
     )
 
     return streamingPlatformTrack
