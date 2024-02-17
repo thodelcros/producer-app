@@ -5,7 +5,7 @@ import { BATCH_ADD_TRACKS_TO_PLAYLIST_LIMIT, SpotifyApi } from "./SpotifyApi"
 import { SpotifySearchTracksResponse, SpotifyUserProfileDetailsResponse } from "./SpotifyTypes"
 
 export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
-  async findTrackByNameAndArtist(trackName: string, artistName: string, accessToken: string) {
+  async findTrackByNameAndArtist(trackName: string, artistName: string) {
     const response = await this.callApi<SpotifySearchTracksResponse>({
       url: "/search",
       params: {
@@ -14,9 +14,6 @@ export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
         limit: 1,
         offset: 0,
         market: "FR",
-      },
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
       },
     })
 
@@ -27,10 +24,10 @@ export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
     return response.data.tracks.items[0].uri
   }
 
-  async addTracksToPlaylist(
+  async addTracksToUserPlaylist(
     playlistId: string,
     trackIds: string[],
-    accessToken: string,
+    refreshToken: string,
   ): Promise<void> {
     const trackIdsChunks = chunkArray(trackIds, BATCH_ADD_TRACKS_TO_PLAYLIST_LIMIT)
 
@@ -41,19 +38,15 @@ export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
         data: {
           uris: trackIdsChunk,
         },
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        params: { refreshToken },
       })
     }
   }
 
-  async getUserDetails(accessToken: string): Promise<{ email: string; id: string }> {
+  async getUserDetails(refreshToken: string): Promise<{ email: string; id: string }> {
     const response = await this.callApi<SpotifyUserProfileDetailsResponse>({
       url: "/me",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      params: { refreshToken },
     })
 
     return { email: response.data.email, id: response.data.id }

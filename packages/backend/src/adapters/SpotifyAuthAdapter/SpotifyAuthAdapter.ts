@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios"
 
-import { SpotifyTokenResponse } from "./SpotifyTypes"
+import { SpotifyAuthError } from "./SpotifyAuthErrors"
+import { SpotifyPersonalTokenResponse, SpotifyTokenResponse } from "./SpotifyAuthTypes"
 
 const BASE_URL = "https://accounts.spotify.com/api"
 
@@ -31,8 +32,31 @@ export class SpotifyAuthAdapter {
     })
   }
 
-  async getAccessToken(code: string) {
-    const response = await this.#client.post<SpotifyTokenResponse>("/token", {
+  async getAppAccessToken() {
+    try {
+      const response = await this.#client.post<SpotifyTokenResponse>("/token", {
+        grant_type: "client_credentials",
+      })
+
+      return response.data.access_token
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        const { data, status } = error.response
+
+        if (status === 400 && data.error === "invalid_client") {
+          throw new SpotifyAuthError(
+            "invalid_credentials",
+            error.toJSON() as Record<string, unknown>,
+          )
+        }
+      }
+
+      throw error
+    }
+  }
+
+  async getPersonalAccessToken(code: string) {
+    const response = await this.#client.post<SpotifyPersonalTokenResponse>("/token", {
       code,
       grant_type: "authorization_code",
       redirect_uri: REDIRECT_URI,
@@ -43,14 +67,30 @@ export class SpotifyAuthAdapter {
     return { accessToken: access_token, refreshToken: refresh_token }
   }
 
-  async refreshAccessToken(refreshToken: string) {
-    const response = await this.#client.post<SpotifyTokenResponse>("/token", {
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-    })
+  async refreshPersonalAccessToken(refreshToken: string) {
+    try {
+      const response = await this.#client.post<SpotifyPersonalTokenResponse>("/token", {
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+      })
 
-    const { access_token, refresh_token } = response.data
+      return response.data.access_token
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        const { data, status } = error.response
+        if (
+          status === 400 &&
+          data.error === "invalid_grant" &&
+          data.error_description === "Invalid refresh token"
+        ) {
+          throw new SpotifyAuthError(
+            "invalid_refresh_token",
+            error.toJSON() as Record<string, unknown>,
+          )
+        }
+      }
 
-    return { accessToken: access_token, refreshToken: refresh_token }
+      throw error
+    }
   }
 }

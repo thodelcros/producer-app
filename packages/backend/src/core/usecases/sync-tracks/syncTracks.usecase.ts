@@ -2,13 +2,11 @@ import { Configuration } from "@/core/domain/Configuration"
 import { ConfigurationsRepository } from "@/core/ports/ConfigurationsRepository.port"
 import { MusicDatabase } from "@/core/ports/MusicDatabase.port"
 import { StreamingPlatform } from "@/core/ports/StreamingPlatform.port"
-import { StreamingPlatformAuthAdapter } from "@/core/ports/StreamingPlatformAuthAdapter.port"
 import { UserRepository } from "@/core/ports/UserRepository.port"
 
 type SyncTracksDependencies = {
   musicDatabase: MusicDatabase
   streamingPlatform: StreamingPlatform
-  streamingPlatformAuthAdapter: StreamingPlatformAuthAdapter
   userRepository: UserRepository
   configurationRepository: ConfigurationsRepository
 }
@@ -27,12 +25,9 @@ export class SyncTracks {
   }
 
   private async processConfiguration(configuration: Configuration) {
-    const { musicDatabase, streamingPlatform, userRepository, streamingPlatformAuthAdapter } =
-      this.dependencies
+    const { musicDatabase, streamingPlatform, userRepository } = this.dependencies
 
     const tracks = await musicDatabase.getTrackNamesByArtistId(configuration.musicDatabaseArtistId)
-
-    console.log({ producedTracks: tracks.length })
 
     const user = await userRepository.findById(configuration.userId)
 
@@ -40,40 +35,29 @@ export class SyncTracks {
       throw new Error("user not found")
     }
 
-    const { accessToken } = await streamingPlatformAuthAdapter.refreshAccessToken(
-      user.streamingPlatformAuthRefreshToken,
-    )
-
     const streamingPlatformTrackIds: (string | null)[] = []
 
     for (const { trackName, artistName } of tracks) {
-      const trackId = await this.getTrackStreamingPlatformId(trackName, artistName, accessToken)
-
-      console.log("Track fetched on spotify : ", { trackName, artistName, trackId })
+      const trackId = await this.getTrackStreamingPlatformId(trackName, artistName)
 
       streamingPlatformTrackIds.push(trackId)
     }
 
     const foundTracks = streamingPlatformTrackIds.filter(Boolean) as string[]
 
-    await streamingPlatform.addTracksToPlaylist(
+    await streamingPlatform.addTracksToUserPlaylist(
       configuration.streamingPlatformPlaylistId,
       foundTracks,
-      accessToken,
+      user.streamingPlatformAuthRefreshToken,
     )
   }
 
-  private async getTrackStreamingPlatformId(
-    trackName: string,
-    artistName: string,
-    accessToken: string,
-  ) {
+  private async getTrackStreamingPlatformId(trackName: string, artistName: string) {
     const { streamingPlatform } = this.dependencies
 
     const streamingPlatformTrack = await streamingPlatform.findTrackByNameAndArtist(
       trackName,
       artistName,
-      accessToken,
     )
 
     return streamingPlatformTrack

@@ -35,15 +35,15 @@ spotifyAuthRouter.get("/callback", async (request, response) => {
     return response.json({ ok: false, code, state, message: "Auth failed 🤕" })
   }
 
-  const registerSpotifyUserInDb = await registerUser({
-    authAdapter: new SpotifyAuthAdapter(),
+  const persistSpotifyUserInDb = await registerUser({
+    streamingPlatformAuthAdapter: new SpotifyAuthAdapter(),
     streamingPlatform: new SpotifyAdapter(),
     idGenerator: new UuidGenerator(),
     userRepository: new DbUserRepository(),
   })
 
   try {
-    const result = await registerSpotifyUserInDb({ authCode: code as string })
+    const result = await persistSpotifyUserInDb({ authCode: code as string })
 
     return response.json({
       ok: true,
