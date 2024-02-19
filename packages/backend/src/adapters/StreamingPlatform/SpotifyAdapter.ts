@@ -2,7 +2,11 @@ import { StreamingPlatform } from "@/core/ports/StreamingPlatform.port"
 import { chunkArray } from "@/core/utils/utility.functions"
 
 import { BATCH_ADD_TRACKS_TO_PLAYLIST_LIMIT, SpotifyApi } from "./SpotifyApi"
-import { SpotifySearchTracksResponse, SpotifyUserProfileDetailsResponse } from "./SpotifyTypes"
+import {
+  SpotifyGetPlaylistsResponse,
+  SpotifySearchTracksResponse,
+  SpotifyUserProfileDetailsResponse,
+} from "./SpotifyTypes"
 
 export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
   async findTrackByNameAndArtist(trackName: string, artistName: string) {
@@ -43,12 +47,28 @@ export class SpotifyAdapter extends SpotifyApi implements StreamingPlatform {
     }
   }
 
-  async getUserDetails(refreshToken: string): Promise<{ email: string; id: string }> {
+  async getUserDetails(accessToken: string): Promise<{ email: string; id: string }> {
     const response = await this.callApi<SpotifyUserProfileDetailsResponse>({
       url: "/me",
-      params: { refreshToken },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     })
 
     return { email: response.data.email, id: response.data.id }
+  }
+
+  async getUserPlaylists(
+    refreshToken: string,
+    userId: string,
+  ): Promise<{ name: string; id: string }[]> {
+    const response = await this.callApi<SpotifyGetPlaylistsResponse>({
+      url: "/me/playlists",
+      params: { refreshToken, limit: 50 },
+    })
+
+    return response.data.items
+      .filter((spotifyPlaylist) => spotifyPlaylist.owner.id === userId)
+      .map((spotifyPlaylist) => ({ id: spotifyPlaylist.id, name: spotifyPlaylist.name }))
   }
 }

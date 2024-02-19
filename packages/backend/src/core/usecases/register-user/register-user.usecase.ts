@@ -1,17 +1,23 @@
+import { User } from "@/core/domain/User"
 import { IdAdapter } from "@/core/ports/IdAdapter.port"
 import { StreamingPlatform } from "@/core/ports/StreamingPlatform.port"
 import { StreamingPlatformAuthAdapter } from "@/core/ports/StreamingPlatformAuthAdapter.port"
-import { UserRepository } from "@/core/ports/UserRepository.port"
+import { UsersRepository } from "@/core/ports/UsersRepository.port"
 
 interface RegisterUserDependencies {
   streamingPlatformAuthAdapter: StreamingPlatformAuthAdapter
   streamingPlatform: StreamingPlatform
-  userRepository: UserRepository
+  userRepository: UsersRepository
   idGenerator: IdAdapter
 }
 
 interface RegisterUserArgs {
   authCode: string
+}
+
+interface RegisterUserResult {
+  action: "updated" | "created"
+  user: User
 }
 
 export const registerUser =
@@ -21,7 +27,7 @@ export const registerUser =
     userRepository,
     idGenerator,
   }: RegisterUserDependencies) =>
-  async ({ authCode }: RegisterUserArgs) => {
+  async ({ authCode }: RegisterUserArgs): Promise<RegisterUserResult> => {
     const { accessToken, refreshToken } = await authAdapter.getPersonalAccessToken(authCode)
 
     const { email, id: streamingPlatformId } = await streamingPlatform.getUserDetails(accessToken)
@@ -31,12 +37,17 @@ export const registerUser =
     if (!user) {
       const id = idGenerator.generate()
 
-      await userRepository.register(id, email, refreshToken, streamingPlatformId)
+      const createdUser = await userRepository.register(
+        id,
+        email,
+        refreshToken,
+        streamingPlatformId,
+      )
 
-      return { action: "created" }
+      return { action: "created", user: createdUser }
     } else {
-      await userRepository.updateRefreshToken(email, refreshToken)
+      const updatedUser = await userRepository.updateRefreshToken(email, refreshToken)
 
-      return { action: "updated" }
+      return { action: "updated", user: updatedUser }
     }
   }

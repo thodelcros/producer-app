@@ -38,11 +38,7 @@ export class GeniusApi {
 
       const items = []
 
-      console.log("-- Pagination retrieval started --")
-      console.log(`Retrieving ${url} page ${page}`)
-
       while (hasMore) {
-        console.log(`Retrieving page ${page}...`)
         const response = await this.callApi<TResponse>({ url, params: { ...params, page } })
 
         const batchItems = response.data.response[key]
@@ -53,16 +49,12 @@ export class GeniusApi {
 
         items.push(...batchItems)
 
-        console.log("Total items : ", items.length)
-
         if (!response.data.response.next_page) {
           hasMore = false
         } else {
           page++
         }
       }
-
-      console.log("-- Pagination retrieval ended ---")
 
       return items as TResponse[TKey]
     }

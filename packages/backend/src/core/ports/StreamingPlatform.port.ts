@@ -5,5 +5,9 @@ export interface StreamingPlatform {
     trackIds: string[],
     refreshToken: string,
   ): Promise<void>
-  getUserDetails(refreshToken: string): Promise<{ email: string; id: string }>
+  getUserDetails(accessToken: string): Promise<{ email: string; id: string }>
+  getUserPlaylists(
+    refreshToken: string,
+    userStreamingPlatfomId: string,
+  ): Promise<{ name: string; id: string }[]>
 }

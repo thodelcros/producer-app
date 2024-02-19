@@ -1,10 +1,10 @@
 import { User } from "@/core/domain/User"
-import { UserRepository } from "@/core/ports/UserRepository.port"
+import { UsersRepository } from "@/core/ports/UsersRepository.port"
 
 import { db } from "../database"
 import { DbUser } from "../database/types"
 
-export class DbUserRepository implements UserRepository {
+export class DbUserRepository implements UsersRepository {
   async findByEmail(email: string) {
     const dbUser = await db
       .selectFrom("users")
@@ -35,7 +35,7 @@ export class DbUserRepository implements UserRepository {
     streamingPlatformRefreshToken: string,
     streamingPlatformId: string,
   ) {
-    await db
+    const createdUser = await db
       .insertInto("users")
       .values({
         id,
@@ -43,15 +43,21 @@ export class DbUserRepository implements UserRepository {
         streaming_platform_id: streamingPlatformId,
         streaming_platform_refresh_token: streamingPlatformRefreshToken,
       })
-      .execute()
+      .returningAll()
+      .executeTakeFirstOrThrow()
+
+    return this.mapUser(createdUser)
   }
 
   async updateRefreshToken(email: string, refreshToken: string) {
-    await db
+    const updatedUser = await db
       .updateTable("users")
       .set({ streaming_platform_refresh_token: refreshToken })
       .where("email", "=", email)
-      .execute()
+      .returningAll()
+      .executeTakeFirstOrThrow()
+
+    return this.mapUser(updatedUser)
   }
 
   private mapUser(dbUser: DbUser): User {

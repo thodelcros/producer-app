@@ -23,6 +23,16 @@ export type SpotifyTrack = {
   artists: [SpotifyArtist, ...SpotifyArtist[]]
 }
 
+export type SpotifyPlaylist = {
+  id: string
+  name: string
+  public: boolean
+  owner: {
+    type: "user"
+    id: string
+  }
+}
+
 export type SpotifyUserProfileDetailsResponse = {
   id: string
   email: string
@@ -32,4 +42,8 @@ export type SpotifySearchTracksResponse = {
   tracks: {
     items: SpotifyTrack[]
   }
+}
+
+export type SpotifyGetPlaylistsResponse = {
+  items: SpotifyPlaylist[]
 }

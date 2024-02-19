@@ -5,10 +5,32 @@ import { db } from "../database"
 import { DbConfiguration } from "../database/types"
 
 export class DbConfigurationsRepository implements ConfigurationsRepository {
-  async getAllConfigurations(): Promise<Configuration[]> {
+  async getAllConfigurations() {
     const configurations = await db.selectFrom("configurations").selectAll().execute()
 
     return configurations.map((configuration) => this.mapConfiguration(configuration))
+  }
+
+  async createConfiguration(
+    id: string,
+    userId: string,
+    musicDatabaseArtistId: string,
+    streamingPlatformPlaylistId: string,
+  ) {
+    const createdConfiguration = await db
+      .insertInto("configurations")
+      .values({
+        id,
+        user_id: userId,
+        music_database_artist_id: musicDatabaseArtistId,
+        streaming_platform_playlist_id: streamingPlatformPlaylistId,
+        // TODO : remove
+        next_sync_runs_at: new Date(),
+      })
+      .returningAll()
+      .executeTakeFirstOrThrow()
+
+    return this.mapConfiguration(createdConfiguration)
   }
 
   private mapConfiguration(dbConfiguration: DbConfiguration): Configuration {
