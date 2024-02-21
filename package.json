@@ -1,11 +1,13 @@
 {
   "name": "producer-app",
   "devDependencies": {
+    "@dotenvx/dotenvx": "^0.14.1",
     "@trivago/prettier-plugin-sort-imports": "^4.2.0"
   },
   "scripts": {
     "dev": "pnpm run \"/^dev:.*/\"",
     "dev:backend": "pnpm --filter backend dev",
-    "dev:frontend": "pnpm --filter frontend dev"
+    "dev:frontend": "pnpm --filter frontend dev",
+    "run-backend-script": "dotenvx run --env-file=environments/local.env --env-file=environments/local.secrets.env -- pnpm --filter backend dev:script"
   }
 }
