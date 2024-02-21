@@ -2,12 +2,12 @@ import { Configuration } from "@/core/domain/Configuration"
 import { ConfigurationsRepository } from "@/core/ports/ConfigurationsRepository.port"
 import { MusicDatabase } from "@/core/ports/MusicDatabase.port"
 import { StreamingPlatform } from "@/core/ports/StreamingPlatform.port"
-import { UserRepository } from "@/core/ports/UserRepository.port"
+import { UsersRepository } from "@/core/ports/UsersRepository.port"
 
 type SyncTracksDependencies = {
   musicDatabase: MusicDatabase
   streamingPlatform: StreamingPlatform
-  userRepository: UserRepository
+  userRepository: UsersRepository
   configurationRepository: ConfigurationsRepository
 }
 

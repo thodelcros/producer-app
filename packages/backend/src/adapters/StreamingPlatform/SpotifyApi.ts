@@ -24,10 +24,10 @@ export class SpotifyApi {
         const accessToken = await this.#authAdapter.getAppAccessToken()
 
         config.headers.Authorization = `Bearer ${accessToken}`
-      } else {
+      } else if (!config.headers.Authorization) {
         const { refreshToken } = config.params
 
-        const accessToken = await this.#authAdapter.refreshPersonalAccessToken(refreshToken)
+        const { accessToken } = await this.#authAdapter.refreshPersonalAccessToken(refreshToken)
 
         delete config.params.refreshToken
 
@@ -58,6 +58,8 @@ export class SpotifyApi {
   private handleError(error: unknown): never {
     if (axios.isAxiosError(error)) {
       const { message } = error
+
+      console.error(error.toJSON())
 
       throw new SpotifyError(message, error.toJSON() as Record<string, unknown>)
     }

@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from "axios"
 import { SpotifyAuthError } from "./SpotifyAuthErrors"
 import { SpotifyPersonalTokenResponse, SpotifyTokenResponse } from "./SpotifyAuthTypes"
 
-const BASE_URL = "https://accounts.spotify.com/api"
+export const BASE_URL = "https://accounts.spotify.com"
 
 export const REDIRECT_URI = `${process.env.SPOTIFY_AUTH_CALLBACK_BASE_URL}/spotify-auth/callback`
 export const PERMISSION_SCOPES = [
@@ -22,7 +22,7 @@ export class SpotifyAuthAdapter {
 
   constructor() {
     this.#client = axios.create({
-      baseURL: BASE_URL,
+      baseURL: `${BASE_URL}/api`,
       headers: {
         Authorization:
           "Basic " +
@@ -72,9 +72,12 @@ export class SpotifyAuthAdapter {
       const response = await this.#client.post<SpotifyPersonalTokenResponse>("/token", {
         grant_type: "refresh_token",
         refresh_token: refreshToken,
+        client_id: SPOTIFY_API_CLIENT_ID,
       })
 
-      return response.data.access_token
+      const { access_token, refresh_token } = response.data
+
+      return { accessToken: access_token, refreshToken: refresh_token }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         const { data, status } = error.response
